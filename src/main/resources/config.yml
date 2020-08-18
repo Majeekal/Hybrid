@@ -1,0 +1,6 @@
+fly:
+  enabled: true
+  max-vl: 10
+  punishment:
+    type: "Ban"
+    duration: 10

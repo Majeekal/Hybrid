@@ -1,0 +1,7 @@
+name: Hybrid
+version: ${project.version}
+main: me.majeek.hybrid.Hybrid
+api-version: 1.16
+authors: [Majeek]
+depend:
+  - ProtocolLib
