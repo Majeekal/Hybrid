@@ -1,5 +1,8 @@
+notification-modulo: 1
+
 fly:
   enabled: true
+  setback-enabled: true
   max-vl: 10
   punishment:
     type: "Ban"

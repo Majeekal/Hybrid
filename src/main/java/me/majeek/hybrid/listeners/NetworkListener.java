@@ -7,6 +7,7 @@ import io.github.retrooper.packetevents.event.impl.PacketSendEvent;
 import me.majeek.hybrid.data.DataManager;
 import me.majeek.hybrid.data.PlayerData;
 import me.majeek.hybrid.processors.MovementProcessor;
+import me.majeek.hybrid.processors.VelocityProcessor;
 
 public class NetworkListener implements PacketListener {
     @PacketHandler
@@ -24,6 +25,7 @@ public class NetworkListener implements PacketListener {
         PlayerData data = DataManager.INSTANCE.getUser(e.getPlayer().getUniqueId());
         if (data != null) {
             data.outgoing(e);
+            VelocityProcessor.process(e);
         }
     }
 }

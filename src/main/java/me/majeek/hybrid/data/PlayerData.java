@@ -8,6 +8,7 @@ import me.majeek.hybrid.checks.CheckManager;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
+import org.bukkit.util.Vector;
 
 import java.util.List;
 import java.util.UUID;
@@ -15,10 +16,14 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class PlayerData {
+
     private Player player;
-    private Location location, lastLocation;
-    private double deltaXZ, deltaY;
-    private boolean isSprinting, isSneaking, onGround;
+    private Location location, lastLocation, lastOnGroundLocation;
+    private Vector lastVel;
+    private double deltaXZ, deltaY, lastDeltaXZ, lastDeltaY;
+    private int airTicks, velXTicks, velYTicks, velZTicks;
+    private long lastSetBack = System.nanoTime() / 1000000;
+    private boolean isSprinting, isSneaking, onGround, serverOnGround;
     private List<Check> checks;
 
     private ExecutorService executorService;
@@ -28,6 +33,15 @@ public class PlayerData {
         this.checks = CheckManager.loadChecks();
         executorService = Executors.newSingleThreadExecutor();
     }
+
+    // Credits to funke for the velocity system.
+    public void lowerVelocityTicks(){
+        velXTicks = Math.max(0, velXTicks - 1);
+        velYTicks = Math.max(0,velYTicks - 1);
+        velZTicks = Math.max(0, velZTicks - 1);
+    }
+
+    public boolean isTakingVelocity() { return velXTicks > 0 || velYTicks > 0 || velZTicks > 0; }
 
     public int getPing() { return PacketEvents.getAPI().getPlayerUtils().getPing(getPlayer()); }
 
@@ -91,11 +105,91 @@ public class PlayerData {
         this.onGround = onGround;
     }
 
+    public double getLastDeltaXZ() {
+        return lastDeltaXZ;
+    }
+
+    public void setLastDeltaXZ(double lastDeltaXZ) {
+        this.lastDeltaXZ = lastDeltaXZ;
+    }
+
+    public double getLastDeltaY() {
+        return lastDeltaY;
+    }
+
+    public void setLastDeltaY(double lastDeltaY) {
+        this.lastDeltaY = lastDeltaY;
+    }
+
+    public boolean isServerOnGround() {
+        return serverOnGround;
+    }
+
+    public void setServerOnGround(boolean serverOnGround) {
+        this.serverOnGround = serverOnGround;
+    }
+
+    public int getAirTicks() {
+        return airTicks;
+    }
+
+    public void setAirTicks(int airTicks) {
+        this.airTicks = airTicks;
+    }
+
+    public Location getLastOnGroundLocation() {
+        return lastOnGroundLocation;
+    }
+
+    public void setLastOnGroundLocation(Location lastOnGroundLocation) {
+        this.lastOnGroundLocation = lastOnGroundLocation;
+    }
+
+    public long getLastSetBack() {
+        return lastSetBack;
+    }
+
+    public void setLastSetBack(long lastSetBack) {
+        this.lastSetBack = lastSetBack;
+    }
+
+    public int getVelXTicks() {
+        return velXTicks;
+    }
+
+    public void setVelXTicks(int velXTicks) {
+        this.velXTicks = velXTicks;
+    }
+
+    public int getVelYTicks() {
+        return velYTicks;
+    }
+
+    public void setVelYTicks(int velYTicks) {
+        this.velYTicks = velYTicks;
+    }
+
+    public int getVelZTicks() {
+        return velZTicks;
+    }
+
+    public void setVelZTicks(int velZTicks) {
+        this.velZTicks = velZTicks;
+    }
+
+    public Vector getLastVel() {
+        return lastVel;
+    }
+
+    public void setLastVel(Vector lastVel) {
+        this.lastVel = lastVel;
+    }
+
     public void inbound(PacketReceiveEvent event){
-        executorService.execute(() -> checks.forEach(check -> check.onPacketReceive(event, DataManager.INSTANCE.getUser(event.getPlayer().getUniqueId()))));
+        executorService.execute(() -> checks.stream().forEach(check -> check.onPacketReceive(event, DataManager.INSTANCE.getUser(event.getPlayer().getUniqueId()))));
     }
 
     public void outgoing(PacketSendEvent event){
-        executorService.execute(() -> checks.forEach(check -> check.onPacketSend(event, DataManager.INSTANCE.getUser(event.getPlayer().getUniqueId()))));
+        executorService.execute(() -> checks.stream().forEach(check -> check.onPacketSend(event, DataManager.INSTANCE.getUser(event.getPlayer().getUniqueId()))));
     }
 }
